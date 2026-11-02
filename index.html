@@ -1,0 +1,3372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f7b8c8">
+  <title>健健与琦琦 · 奶油小屋</title>
+  <style>
+    /* ==================== 基础与像素风变量 ==================== */
+    :root {
+      --ink: #5f4147;
+      --ink-soft: #8e6368;
+      --rose: #ed9eb4;
+      --rose-deep: #d97994;
+      --pink: #ffdbe4;
+      --pink-light: #fff1f4;
+      --cream: #fff8eb;
+      --cream-deep: #f1dbc2;
+      --wood: #c98f72;
+      --wood-light: #e4b994;
+      --wood-dark: #8f5c52;
+      --mint: #dcead8;
+      --shadow: rgba(101, 65, 71, 0.22);
+      --pixel-font: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Heiti SC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      font-family: var(--pixel-font);
+      background:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.34) 25%, transparent 25%) 0 0 / 24px 24px,
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.34) 75%) 0 0 / 24px 24px,
+        linear-gradient(135deg, #f7ced9 0%, #fbe4e7 45%, #f5d8dd 100%);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #9d5d70;
+      outline-offset: 3px;
+    }
+
+    svg {
+      display: block;
+      overflow: visible;
+      shape-rendering: crispEdges;
+    }
+
+    .svg-library {
+      position: fixed;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .page-shell {
+      display: grid;
+      min-height: 100dvh;
+      padding: clamp(8px, 1.5vw, 20px);
+      place-items: center;
+    }
+
+    /* ==================== 加载页面 ==================== */
+    .loading-screen {
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.38) 50%, transparent 50%) 0 0 / 28px 28px,
+        linear-gradient(rgba(255, 255, 255, 0.38) 50%, transparent 50%) 0 0 / 28px 28px,
+        linear-gradient(145deg, #fff8f6, #fbd9e0);
+      transition: opacity 650ms ease, visibility 650ms ease;
+    }
+
+    .loading-screen.is-hidden {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-screen::before,
+    .loading-screen::after {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      content: "";
+      border: 16px solid rgba(255, 255, 255, 0.46);
+      transform: rotate(45deg);
+    }
+
+    .loading-screen::before {
+      top: -92px;
+      left: -72px;
+    }
+
+    .loading-screen::after {
+      right: -90px;
+      bottom: -94px;
+    }
+
+    .loading-card {
+      position: relative;
+      width: min(84vw, 420px);
+      padding: 26px 28px 24px;
+      text-align: center;
+      background: rgba(255, 248, 239, 0.95);
+      border: 4px solid var(--ink);
+      box-shadow:
+        0 0 0 5px #fff,
+        0 0 0 9px var(--rose),
+        12px 12px 0 rgba(104, 66, 73, 0.18);
+    }
+
+    .loader-couple {
+      display: flex;
+      height: 76px;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .loader-couple svg,
+    .loader-couple .loader-pixel {
+      width: 54px;
+      height: 70px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      animation: loader-hop 1.45s steps(2, end) infinite;
+    }
+
+    .loader-couple svg:last-child {
+      animation-delay: 0.34s;
+    }
+
+    .loader-heart {
+      width: 23px;
+      animation: heart-pulse 1.1s steps(2, end) infinite;
+    }
+
+    .loader-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(21px, 5vw, 29px);
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-shadow: 2px 2px 0 #f6b6c6;
+    }
+
+    .loader-subtitle {
+      margin: 9px 0 18px;
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .loading-track {
+      height: 18px;
+      padding: 3px;
+      background: #ecd7d5;
+      border: 2px solid var(--ink);
+    }
+
+    .loading-bar {
+      width: 0;
+      height: 100%;
+      background:
+        repeating-linear-gradient(90deg, #ef9eb4 0 12px, #f9bac9 12px 16px);
+      transition: width 100ms linear;
+    }
+
+    .loading-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      color: var(--ink-soft);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    @keyframes loader-hop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes heart-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+
+    /* ==================== 游戏外框与场景 ==================== */
+    .game-shell {
+      position: relative;
+      width: min(1180px, 96vw, calc((100dvh - 34px) * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: var(--cream);
+      border: clamp(4px, 0.5vw, 7px) solid #694a4f;
+      border-radius: 3px;
+      box-shadow:
+        0 0 0 4px #fff7ee,
+        0 0 0 8px #dda0af,
+        12px 14px 0 rgba(108, 74, 79, 0.19);
+      isolation: isolate;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+
+    .scene::after {
+      position: absolute;
+      z-index: 183;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(70, 39, 49, 0.025) 0 1px, transparent 1px 3px);
+      mix-blend-mode: multiply;
+    }
+
+    .wall {
+      position: absolute;
+      inset: 0 0 48%;
+      background:
+        linear-gradient(90deg, transparent 0 94%, rgba(202, 152, 145, 0.11) 94% 100%) 0 0 / 58px 100%,
+        radial-gradient(circle at 64% 20%, rgba(255, 247, 217, 0.95), transparent 27%),
+        linear-gradient(180deg, #fbece5 0%, #f9e7df 82%, #f4d8d0 100%);
+    }
+
+    .wallpaper-dots {
+      position: absolute;
+      inset: 0;
+      opacity: 0.42;
+      background:
+        linear-gradient(45deg, #eec7c4 25%, transparent 25% 75%, #eec7c4 75%) 0 0 / 34px 34px;
+      background-size: 13px 13px;
+      mask-image: linear-gradient(to bottom, transparent 7%, #000 30% 82%, transparent);
+    }
+
+    .wall-stripe {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 7px;
+      background: rgba(218, 165, 161, 0.18);
+    }
+
+    .wall-stripe:nth-child(1) { left: 38%; }
+    .wall-stripe:nth-child(2) { left: 79%; }
+
+    .wainscot {
+      position: absolute;
+      z-index: 2;
+      right: 0;
+      bottom: 47%;
+      left: 0;
+      height: 5.1%;
+      background:
+        linear-gradient(180deg, #f7e9db 0 14%, #ead4c2 14% 28%, #f9eee4 28% 100%);
+      border-top: 3px solid #d8b9a3;
+      border-bottom: 4px solid #8d655c;
+      box-shadow: 0 5px 0 rgba(117, 76, 73, 0.13);
+    }
+
+    .upper-trim {
+      position: absolute;
+      z-index: 3;
+      right: 0;
+      bottom: 52%;
+      left: 0;
+      height: 10px;
+      background: repeating-linear-gradient(90deg, #c49b86 0 13px, #d8b49e 13px 26px);
+      border-top: 2px solid #a47a6e;
+      border-bottom: 2px solid #9f7569;
+    }
+
+    .floor {
+      position: absolute;
+      inset: 52% 0 0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 13.8%, rgba(96, 61, 62, 0.16) 13.8% 14.2%),
+        repeating-linear-gradient(0deg, #d8aa88 0 34px, #d1a07f 34px 38px, #deb291 38px 76px);
+    }
+
+    .floor::before {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background:
+        radial-gradient(ellipse at 58% 34%, rgba(255, 246, 220, 0.62), transparent 37%),
+        linear-gradient(105deg, rgba(95, 62, 60, 0.06), transparent 52%);
+    }
+
+    .rug {
+      position: absolute;
+      z-index: 5;
+      left: 30%;
+      top: 70%;
+      width: 48%;
+      height: 22%;
+      background:
+        linear-gradient(90deg, transparent 46%, rgba(255,255,255,0.3) 46% 54%, transparent 54%),
+        repeating-linear-gradient(0deg, #f1cfd0 0 12px, #f8e2df 12px 15px);
+      border: 5px solid #d49eaa;
+      box-shadow:
+        inset 0 0 0 5px #f7e8e1,
+        6px 7px 0 rgba(102, 65, 62, 0.12);
+      clip-path: polygon(4% 0, 96% 0, 100% 20%, 100% 80%, 96% 100%, 4% 100%, 0 80%, 0 20%);
+    }
+
+    .rug::after {
+      position: absolute;
+      inset: 14% 8%;
+      content: "";
+      border: 3px dashed rgba(191, 124, 141, 0.46);
+    }
+
+    /* ==================== 窗户与墙面装饰 ==================== */
+    .window {
+      position: absolute;
+      z-index: 4;
+      top: 13%;
+      left: 8%;
+      width: 21%;
+      height: 29%;
+      padding: 9px;
+      background: repeating-linear-gradient(90deg, #c28e71 0 13px, #d6a585 13px 18px);
+      border: 4px solid #8c5f55;
+      box-shadow:
+        0 0 0 4px #f0cbb2,
+        8px 9px 0 rgba(111, 72, 68, 0.14);
+    }
+
+    .window::before {
+      position: absolute;
+      z-index: 3;
+      top: 9px;
+      bottom: 9px;
+      left: 50%;
+      width: 6px;
+      content: "";
+      background: #b68167;
+      border-right: 2px solid #f1ccb2;
+      border-left: 2px solid #8a5d53;
+      transform: translateX(-3px);
+    }
+
+    .window::after {
+      position: absolute;
+      z-index: 3;
+      top: 50%;
+      right: 9px;
+      left: 9px;
+      height: 6px;
+      content: "";
+      background: #b68167;
+      border-top: 2px solid #f1ccb2;
+      border-bottom: 2px solid #8a5d53;
+    }
+
+    .window-sky {
+      position: absolute;
+      inset: 9px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #f9dec4 0%, #f5c8be 55%, #abd0c1 100%);
+      transition: background 500ms ease;
+    }
+
+    .window-sky::before {
+      position: absolute;
+      top: 17%;
+      left: 12%;
+      width: 45%;
+      height: 12%;
+      content: "";
+      background: rgba(255, 250, 235, 0.9);
+      box-shadow:
+        10px -8px 0 rgba(255, 250, 235, 0.9),
+        20px 0 0 rgba(255, 250, 235, 0.9);
+    }
+
+    .window-sky::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 32%;
+      content: "";
+      background:
+        linear-gradient(135deg, transparent 20%, #8fbfa9 20% 42%, transparent 42%),
+        linear-gradient(225deg, transparent 18%, #75a38f 18% 48%, transparent 48%),
+        #aacdb9;
+    }
+
+    .game-shell[data-period="night"] .window-sky,
+    .game-shell[data-period="late"] .window-sky {
+      background: linear-gradient(180deg, #4b5379 0%, #616889 51%, #8a9a9a 100%);
+    }
+
+    .game-shell[data-period="night"] .window-sky::before,
+    .game-shell[data-period="late"] .window-sky::before {
+      width: 22px;
+      height: 22px;
+      background: #fff5c6;
+      box-shadow: 0 0 0 5px rgba(255, 245, 198, 0.12);
+      clip-path: polygon(0 30%, 30% 30%, 30% 0, 70% 0, 70% 30%, 100% 30%, 100% 70%, 70% 70%, 70% 100%, 30% 100%, 30% 70%, 0 70%);
+    }
+
+    .curtain {
+      position: absolute;
+      z-index: 5;
+      top: 8%;
+      width: 11%;
+      height: 40%;
+      background:
+        repeating-linear-gradient(90deg, #eaa9b1 0 18px, #d98e9e 18px 23px);
+      border: 3px solid #a96b75;
+      box-shadow: inset -7px 0 rgba(255, 220, 220, 0.25);
+    }
+
+    .curtain-left {
+      left: 5.5%;
+      clip-path: polygon(0 0, 100% 0, 78% 100%, 0 88%);
+    }
+
+    .curtain-right {
+      left: 26%;
+      clip-path: polygon(0 0, 100% 0, 100% 88%, 22% 100%);
+    }
+
+    .curtain::before {
+      position: absolute;
+      top: -6px;
+      right: 0;
+      left: 0;
+      height: 9px;
+      content: "";
+      background: #9d685f;
+    }
+
+    .garland {
+      position: absolute;
+      z-index: 3;
+      top: 4.5%;
+      left: 34%;
+      width: 38%;
+      height: 6%;
+      border-top: 3px solid #a7796b;
+      border-radius: 50%;
+    }
+
+    .garland i {
+      position: absolute;
+      top: 0;
+      width: 11px;
+      height: 11px;
+      background: #ed9eb0;
+      box-shadow: 0 2px 0 #c9788c;
+      clip-path: polygon(0 20%, 45% 20%, 45% 0, 55% 0, 55% 20%, 100% 20%, 100% 75%, 55% 75%, 55% 100%, 45% 100%, 45% 75%, 0 75%);
+    }
+
+    .garland i:nth-child(1) { left: 12%; top: 2px; }
+    .garland i:nth-child(2) { left: 39%; top: 8px; background: #f4c584; }
+    .garland i:nth-child(3) { left: 67%; top: 7px; }
+    .garland i:nth-child(4) { left: 86%; top: 1px; background: #c8ddc4; }
+
+    .wall-frame {
+      position: absolute;
+      z-index: 3;
+      top: 14%;
+      right: 16%;
+      display: grid;
+      width: 11%;
+      aspect-ratio: 1.1;
+      place-items: center;
+      background: #f7e9dc;
+      border: 7px solid #bd8e72;
+      box-shadow:
+        inset 0 0 0 3px #f9d2ca,
+        5px 6px 0 rgba(94, 63, 61, 0.12);
+      transform: rotate(2deg);
+    }
+
+    .wall-frame::before {
+      width: 42%;
+      height: 33%;
+      content: "";
+      background: #dd9eaa;
+      clip-path: polygon(0 30%, 40% 30%, 40% 0, 60% 0, 60% 30%, 100% 30%, 100% 70%, 60% 70%, 60% 100%, 40% 100%, 40% 70%, 0 70%);
+    }
+
+    .wall-clock {
+      position: absolute;
+      z-index: 4;
+      top: 34%;
+      right: 7%;
+      width: clamp(40px, 5vw, 60px);
+      aspect-ratio: 1;
+      background: #fff7e8;
+      border: 5px solid #a77763;
+      box-shadow: 4px 4px 0 rgba(95, 62, 55, 0.15);
+    }
+
+    .wall-clock::before,
+    .wall-clock::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      content: "";
+      background: var(--ink);
+      transform-origin: left center;
+    }
+
+    .wall-clock::before {
+      width: 28%;
+      height: 3px;
+      transform: rotate(-54deg);
+    }
+
+    .wall-clock::after {
+      width: 3px;
+      height: 27%;
+      transform: translate(-1px, -100%) rotate(21deg);
+    }
+
+    /* ==================== 家具 ==================== */
+    .furniture {
+      position: absolute;
+      padding: 0;
+      background: transparent;
+      transition: filter 160ms ease, transform 160ms ease;
+    }
+
+    .furniture:hover {
+      filter: brightness(1.04) drop-shadow(0 0 5px rgba(255, 247, 214, 0.95));
+      transform: translateY(-2px);
+    }
+
+    .sofa {
+      z-index: 128;
+      top: 53%;
+      left: 3.5%;
+      width: 29%;
+      height: 25%;
+    }
+
+    .sofa-back {
+      position: absolute;
+      top: 0;
+      right: 5%;
+      left: 5%;
+      height: 54%;
+      background: #e9c4a6;
+      border: 4px solid #865e54;
+      box-shadow:
+        inset 0 8px #f6dfc9,
+        inset 0 -9px #d4a886;
+    }
+
+    .sofa-cushion {
+      position: absolute;
+      top: 14%;
+      width: 38%;
+      height: 37%;
+      background: #f5c5cb;
+      border: 3px solid #a37170;
+      box-shadow: inset 0 5px rgba(255,255,255,0.34);
+      transform: rotate(-1deg);
+    }
+
+    .sofa-cushion.left { left: 13%; }
+    .sofa-cushion.right { right: 13%; transform: rotate(1deg); }
+
+    .sofa-arm {
+      position: absolute;
+      bottom: 19%;
+      width: 15%;
+      height: 48%;
+      background: #d8a985;
+      border: 4px solid #865e54;
+      box-shadow: inset 6px 0 #f0cfb2;
+    }
+
+    .sofa-arm.left { left: 0; }
+    .sofa-arm.right { right: 0; box-shadow: inset -6px 0 #c79776; }
+
+    .sofa-seat {
+      position: absolute;
+      right: 8%;
+      bottom: 17%;
+      left: 8%;
+      height: 33%;
+      background: #f1c0c4;
+      border: 4px solid #865e54;
+      box-shadow:
+        inset 0 6px #ffe0df,
+        inset 0 -7px #d99aa6;
+    }
+
+    .sofa-foot {
+      position: absolute;
+      bottom: 4%;
+      width: 8%;
+      height: 17%;
+      background: #805a4d;
+      border: 2px solid #60463f;
+    }
+
+    .sofa-foot.left { left: 10%; }
+    .sofa-foot.right { right: 10%; }
+
+    .sofa-throw {
+      position: absolute;
+      top: 24%;
+      right: 3%;
+      width: 18%;
+      height: 38%;
+      background:
+        repeating-linear-gradient(0deg, #dbe8d1 0 8px, #c8dabe 8px 12px);
+      border: 3px solid #8b7461;
+      transform: skewY(-5deg);
+    }
+
+    .coffee-table {
+      z-index: 151;
+      top: 66%;
+      left: 38%;
+      width: 24%;
+      height: 18%;
+    }
+
+    .table-top {
+      position: absolute;
+      z-index: 3;
+      top: 22%;
+      right: 0;
+      left: 0;
+      height: 27%;
+      background:
+        linear-gradient(90deg, transparent 48%, rgba(139, 90, 70, 0.28) 48% 52%, transparent 52%),
+        #d7a47f;
+      border: 4px solid #7f574e;
+      box-shadow:
+        inset 0 5px #efc7a3,
+        0 6px 0 #a8735d;
+    }
+
+    .table-leg {
+      position: absolute;
+      top: 49%;
+      bottom: 2%;
+      width: 8%;
+      background: #9c6b56;
+      border: 3px solid #754e47;
+    }
+
+    .table-leg.left { left: 12%; }
+    .table-leg.right { right: 12%; }
+
+    .table-mug {
+      position: absolute;
+      z-index: 5;
+      top: 7%;
+      right: 16%;
+      width: 15%;
+      height: 22%;
+      background: #f6e7d5;
+      border: 3px solid #74544f;
+      box-shadow: inset 0 4px #db9eae;
+    }
+
+    .table-mug::after {
+      position: absolute;
+      top: 18%;
+      right: -30%;
+      width: 34%;
+      height: 42%;
+      content: "";
+      border: 3px solid #74544f;
+      border-left: 0;
+    }
+
+    .table-books {
+      position: absolute;
+      z-index: 5;
+      top: 10%;
+      left: 10%;
+      width: 27%;
+      height: 13%;
+      background: #d7919f;
+      border: 2px solid #6f4e4d;
+      box-shadow: 0 5px 0 #dce4c9, 0 8px 0 #765150;
+      transform: rotate(-3deg);
+    }
+
+    .table-cookie {
+      position: absolute;
+      z-index: 5;
+      top: 4%;
+      left: 47%;
+      width: 11%;
+      aspect-ratio: 1;
+      background: #d8a45f;
+      border: 2px solid #7c5446;
+      box-shadow: 3px 3px 0 #f1d4a6;
+      transform: rotate(12deg);
+    }
+
+    .bookshelf {
+      z-index: 130;
+      top: 37%;
+      right: 2.5%;
+      width: 14.5%;
+      height: 33%;
+      background:
+        linear-gradient(90deg, transparent 0 8%, #a87660 8% 15%, transparent 15% 85%, #a87660 85% 92%, transparent 92%),
+        linear-gradient(180deg, #d8a783 0 7%, #f0d3b5 7% 33%, #d8a783 33% 38%, #f0d3b5 38% 66%, #d8a783 66% 71%, #f0d3b5 71% 100%);
+      border: 4px solid #7e554d;
+      box-shadow: inset 0 0 0 4px #e7bf9e, 6px 7px 0 rgba(91, 60, 57, 0.14);
+    }
+
+    .book {
+      position: absolute;
+      bottom: 7%;
+      width: 11%;
+      height: 18%;
+      border: 2px solid #6f504b;
+    }
+
+    .book.b1 { left: 18%; height: 20%; background: #d992a1; }
+    .book.b2 { left: 30%; height: 17%; background: #c6d8bd; }
+    .book.b3 { left: 42%; height: 22%; background: #f0c689; }
+    .book.b4 { left: 55%; height: 18%; background: #b3b8cf; }
+    .book.b5 { left: 67%; height: 22%; background: #dfb0bb; }
+
+    .book.upper {
+      bottom: 41%;
+      height: 17%;
+    }
+
+    .book.upper.b6 { left: 25%; background: #cbc0db; }
+    .book.upper.b7 { left: 38%; background: #d9a398; }
+    .book.upper.b8 { left: 51%; background: #abcbbd; }
+
+    .plant-pot {
+      position: absolute;
+      z-index: 4;
+      top: -16%;
+      right: 10%;
+      width: 34%;
+      height: 17%;
+      background: #e6a69e;
+      border: 3px solid #75514d;
+      box-shadow: inset 0 4px rgba(255,255,255,0.3);
+    }
+
+    .plant-leaf {
+      position: absolute;
+      z-index: 3;
+      background: #88a881;
+      border: 3px solid #59735a;
+      transform: rotate(45deg);
+    }
+
+    .plant-leaf.l1 {
+      top: -55%;
+      left: 7%;
+      width: 33%;
+      height: 45%;
+    }
+
+    .plant-leaf.l2 {
+      top: -78%;
+      left: 36%;
+      width: 27%;
+      height: 57%;
+      background: #a7c095;
+    }
+
+    .plant-leaf.l3 {
+      top: -41%;
+      right: -4%;
+      width: 33%;
+      height: 40%;
+    }
+
+    .record-player {
+      position: absolute;
+      z-index: 5;
+      top: 10%;
+      right: 16%;
+      width: 66%;
+      height: 17%;
+      background: #f5e3ce;
+      border: 3px solid #6e504d;
+      box-shadow: inset 0 4px #cf9da5;
+    }
+
+    .record-player::before {
+      position: absolute;
+      top: 17%;
+      left: 9%;
+      width: 45%;
+      aspect-ratio: 1;
+      content: "";
+      background: #4e464d;
+      border: 2px solid #25232b;
+    }
+
+    .record-player::after {
+      position: absolute;
+      top: 19%;
+      right: 14%;
+      width: 4px;
+      height: 32%;
+      content: "";
+      background: #73534f;
+      transform: rotate(25deg);
+    }
+
+    .floor-lamp {
+      position: absolute;
+      z-index: 110;
+      top: 30%;
+      left: 34%;
+      width: clamp(40px, 6%, 70px);
+      height: 32%;
+      pointer-events: none;
+    }
+
+    .lamp-shade {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 28%;
+      background: #f8d9b6;
+      border: 4px solid #895f54;
+      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+      box-shadow: inset 0 6px #fff2cf;
+    }
+
+    .lamp-glow {
+      position: absolute;
+      top: 9%;
+      left: -70%;
+      width: 240%;
+      height: 100%;
+      background: radial-gradient(ellipse at 50% 15%, rgba(255, 242, 171, 0.38), transparent 60%);
+      pointer-events: none;
+    }
+
+    .lamp-pole {
+      position: absolute;
+      top: 27%;
+      bottom: 5%;
+      left: 48%;
+      width: 5%;
+      min-width: 3px;
+      background: #77554c;
+    }
+
+    .lamp-base {
+      position: absolute;
+      right: 17%;
+      bottom: 0;
+      left: 17%;
+      height: 7%;
+      background: #80594c;
+      border: 2px solid #5c443f;
+    }
+
+    .cat-bed {
+      position: absolute;
+      z-index: 7;
+      top: 82%;
+      left: 60%;
+      width: 16%;
+      height: 8%;
+      background: #eab6be;
+      border: 4px solid #966b67;
+      border-radius: 45%;
+      box-shadow:
+        inset 0 7px #f9dde0,
+        5px 5px 0 rgba(94, 59, 58, 0.12);
+      pointer-events: none;
+    }
+
+    .cat-bed::after {
+      position: absolute;
+      inset: 17%;
+      content: "";
+      background: #fff0e5;
+      border: 3px dashed #c88f92;
+      border-radius: 45%;
+    }
+
+    /* ==================== 角色 ==================== */
+    .character {
+      position: absolute;
+      z-index: 150;
+      width: clamp(76px, 8vw, 104px);
+      aspect-ratio: 432 / 753;
+      padding: 0;
+      background: transparent;
+      transform: translate(-50%, -100%);
+      transform-origin: 50% 100%;
+      transition: filter 180ms ease;
+    }
+
+    .character svg,
+    .character .character-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      shape-rendering: crispEdges;
+      filter: drop-shadow(3px 4px 0 rgba(84, 54, 53, 0.18));
+    }
+
+    .character .name-tag {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      padding: 3px 7px;
+      color: var(--ink);
+      font-size: clamp(9px, 1.1vw, 12px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      background: rgba(255, 248, 238, 0.92);
+      border: 2px solid #7d5859;
+      box-shadow: 2px 2px 0 rgba(103, 68, 68, 0.14);
+      transform: translateX(-50%);
+    }
+
+    .character.is-near {
+      filter: drop-shadow(0 0 8px rgba(255, 239, 171, 0.95));
+    }
+
+    .character.is-near::after {
+      position: absolute;
+      top: -39px;
+      right: -7px;
+      display: grid;
+      width: 20px;
+      height: 20px;
+      place-items: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      content: "!";
+      background: #d97690;
+      border: 2px solid #fff7ef;
+      animation: prompt-bob 650ms steps(2, end) infinite;
+    }
+
+    @keyframes prompt-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    #player {
+      z-index: 150;
+      will-change: left, top;
+    }
+
+    #player .sprite-holder {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: 50% 100%;
+    }
+
+    #player.is-moving .sprite-holder {
+      animation: sprite-walk 260ms steps(2, end) infinite;
+    }
+
+    #player .sprite-holder[data-facing="left"] svg,
+    #player .sprite-holder[data-facing="left"] .character-img {
+      transform: scaleX(-1);
+    }
+
+    @keyframes sprite-walk {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .qiqi {
+      z-index: 149;
+      top: 80%;
+      left: 73%;
+      width: clamp(82px, 8.6vw, 112px);
+      aspect-ratio: 398 / 703;
+      animation: qiqi-idle 2.2s steps(2, end) infinite;
+    }
+
+    .qiqi .name-tag {
+      border-color: #b97887;
+      background: #fff2f3;
+    }
+
+    @keyframes qiqi-idle {
+      0%, 100% { transform: translate(-50%, -100%) translateY(0); }
+      50% { transform: translate(-50%, -100%) translateY(-2px); }
+    }
+
+    .cat {
+      z-index: 154;
+      top: 88%;
+      left: 66.5%;
+      width: clamp(58px, 6.4vw, 80px);
+      aspect-ratio: 24 / 20;
+      animation: cat-breathe 1.8s steps(2, end) infinite;
+    }
+
+    .cat svg {
+      filter: drop-shadow(3px 3px 0 rgba(84, 54, 53, 0.18));
+    }
+
+    .cat .name-tag {
+      top: -18px;
+      border-color: #9a7664;
+      background: #fff7e8;
+    }
+
+    @keyframes cat-breathe {
+      0%, 100% { transform: translate(-50%, -100%) scaleY(1); }
+      50% { transform: translate(-50%, -100%) scaleY(0.97); }
+    }
+
+    .cat-tail {
+      transform-origin: 10px 20px;
+      animation: tail-wave 1.3s steps(3, end) infinite;
+    }
+
+    @keyframes tail-wave {
+      0%, 100% { transform: rotate(0); }
+      50% { transform: rotate(-9deg); }
+    }
+
+    /* ==================== 游戏 HUD ==================== */
+    .hud {
+      position: absolute;
+      z-index: 200;
+      top: clamp(9px, 1.7vw, 20px);
+      right: clamp(9px, 1.7vw, 20px);
+      left: clamp(9px, 1.7vw, 20px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .brand-card,
+    .status-card {
+      background: rgba(255, 248, 239, 0.9);
+      border: 3px solid #7a5559;
+      box-shadow:
+        0 0 0 3px rgba(255, 238, 238, 0.82),
+        5px 5px 0 rgba(100, 65, 70, 0.14);
+      backdrop-filter: blur(3px);
+    }
+
+    .brand-card {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 12px 7px 8px;
+    }
+
+    .brand-heart {
+      display: grid;
+      width: 31px;
+      height: 29px;
+      place-items: center;
+      color: #fff9ee;
+      font-size: 17px;
+      background: #e797a9;
+      border: 2px solid #7e565b;
+      box-shadow: inset 0 4px rgba(255,255,255,0.22);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: clamp(12px, 1.5vw, 17px);
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      color: var(--ink-soft);
+      font-size: clamp(8px, 0.9vw, 10px);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-right {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      pointer-events: auto;
+    }
+
+    .status-card {
+      display: flex;
+      align-items: stretch;
+      min-height: 41px;
+    }
+
+    .clock-box {
+      min-width: 95px;
+      padding: 5px 10px;
+      text-align: center;
+      border-right: 2px dashed #d3aba8;
+    }
+
+    .clock-time {
+      display: block;
+      font-family: "Courier New", monospace;
+      font-size: clamp(12px, 1.3vw, 15px);
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .clock-period {
+      display: block;
+      margin-top: 1px;
+      color: var(--ink-soft);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .love-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+    }
+
+    .love-label {
+      color: var(--ink-soft);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .hearts {
+      color: #e689a1;
+      font-family: "Courier New", monospace;
+      font-size: clamp(11px, 1.2vw, 14px);
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    .hearts.is-full {
+      color: #d95d7c;
+      animation: full-heartbeat 1.2s steps(2, end) infinite;
+    }
+
+    @keyframes full-heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .icon-btn {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+      background: #fff8ee;
+      border: 3px solid #7a5559;
+      box-shadow: 3px 3px 0 rgba(100, 65, 70, 0.18);
+      transition: transform 100ms ease, background 100ms ease;
+    }
+
+    .icon-btn:hover {
+      background: #ffe0e6;
+      transform: translateY(-2px);
+    }
+
+    .icon-btn.active {
+      color: #fff;
+      background: #d8869d;
+    }
+
+    /* ==================== 操作区 ==================== */
+    .movement-controls {
+      position: absolute;
+      z-index: 205;
+      bottom: clamp(15px, 2.2vw, 28px);
+      left: clamp(15px, 2.5vw, 32px);
+      pointer-events: none;
+    }
+
+    .joystick {
+      position: relative;
+      display: grid;
+      width: clamp(72px, 9vw, 105px);
+      aspect-ratio: 1;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.7), rgba(246, 199, 207, 0.58));
+      border: 4px solid rgba(108, 73, 77, 0.78);
+      box-shadow:
+        inset 0 0 0 5px rgba(255, 248, 238, 0.75),
+        5px 5px 0 rgba(99, 65, 70, 0.15);
+      clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+      touch-action: none;
+      pointer-events: auto;
+    }
+
+    .joystick::before,
+    .joystick::after {
+      position: absolute;
+      content: "";
+      background: rgba(124, 82, 86, 0.2);
+    }
+
+    .joystick::before {
+      top: 13%;
+      bottom: 13%;
+      left: 50%;
+      width: 2px;
+    }
+
+    .joystick::after {
+      top: 50%;
+      right: 13%;
+      left: 13%;
+      height: 2px;
+    }
+
+    .joystick-knob {
+      position: relative;
+      z-index: 2;
+      width: 43%;
+      aspect-ratio: 1;
+      background:
+        linear-gradient(135deg, #fff9f1 0 50%, #edbbc3 50%);
+      border: 4px solid #785456;
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.5),
+        3px 4px 0 rgba(97, 62, 66, 0.2);
+      pointer-events: none;
+    }
+
+    .joystick-hint {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      color: rgba(88, 57, 61, 0.85);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      text-shadow: 1px 1px #fff;
+      transform: translateX(-50%);
+    }
+
+    .action-wrap {
+      position: absolute;
+      z-index: 205;
+      right: clamp(18px, 2.5vw, 34px);
+      bottom: clamp(18px, 2.4vw, 30px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      pointer-events: none;
+    }
+
+    .action-hint {
+      max-width: 235px;
+      padding: 5px 9px;
+      color: var(--ink);
+      font-size: clamp(9px, 1vw, 11px);
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255, 249, 239, 0.9);
+      border: 2px solid rgba(111, 74, 78, 0.78);
+      box-shadow: 2px 2px 0 rgba(99, 67, 68, 0.12);
+    }
+
+    .action-btn {
+      display: grid;
+      width: clamp(55px, 7vw, 76px);
+      aspect-ratio: 1;
+      place-items: center;
+      color: #fffaf2;
+      font-size: clamp(11px, 1.3vw, 14px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      background:
+        linear-gradient(135deg, #e797a9 0 48%, #d98199 48%);
+      border: 4px solid #774f57;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 238, 235, 0.32),
+        5px 5px 0 rgba(96, 63, 67, 0.2);
+      clip-path: polygon(17% 0, 83% 0, 100% 17%, 100% 83%, 83% 100%, 17% 100%, 0 83%, 0 17%);
+      pointer-events: auto;
+    }
+
+    .action-btn:active,
+    .icon-btn:active {
+      transform: translate(2px, 2px);
+    }
+
+    /* ==================== 对话框 ==================== */
+    .dialogue-panel {
+      position: absolute;
+      z-index: 300;
+      right: 4.2%;
+      bottom: 3.3%;
+      left: 4.2%;
+      display: grid;
+      grid-template-columns: clamp(58px, 7.8vw, 88px) minmax(0, 1fr);
+      gap: clamp(11px, 1.5vw, 18px);
+      padding: clamp(11px, 1.5vw, 17px) clamp(13px, 1.8vw, 21px);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.28) 50%, transparent 50%) 0 0 / 12px 12px,
+        #fff9ee;
+      border: 4px solid #6f4d52;
+      box-shadow:
+        0 0 0 4px #ffd6df,
+        0 0 0 7px #fff6ed,
+        8px 9px 0 rgba(86, 53, 58, 0.25);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(calc(100% + 35px));
+      transition: opacity 180ms ease, transform 240ms cubic-bezier(.2,.8,.2,1), visibility 240ms;
+    }
+
+    .dialogue-panel.is-open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .portrait-frame {
+      position: relative;
+      align-self: start;
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, #ffe7ec 0 50%, #f9d5dc 50%);
+      border: 3px solid #79555a;
+      box-shadow:
+        inset 0 0 0 4px rgba(255,255,255,0.55),
+        3px 3px 0 rgba(101, 65, 70, 0.12);
+    }
+
+    .portrait-frame::after {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 13px;
+      height: 13px;
+      content: "";
+      background: #d897a7;
+      border: 2px solid #79555a;
+    }
+
+    .portrait-frame svg,
+    .portrait-frame .portrait-img {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      width: 92%;
+      height: 128%;
+      object-fit: cover;
+      object-position: center 8%;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 2px 0 rgba(100, 65, 70, 0.14));
+      transform: translateX(-50%);
+    }
+
+    .dialog-content {
+      min-width: 0;
+      align-self: center;
+    }
+
+    .dialog-name {
+      position: absolute;
+      top: -16px;
+      left: clamp(74px, 9.8vw, 110px);
+      padding: 4px 12px;
+      color: #fff9ef;
+      font-size: clamp(10px, 1.25vw, 14px);
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: #c9788d;
+      border: 3px solid #704c52;
+      box-shadow: 2px 2px 0 rgba(79, 49, 53, 0.16);
+    }
+
+    .dialog-text {
+      min-height: clamp(44px, 5.8vw, 66px);
+      margin: 0;
+      color: #5a3e43;
+      font-size: clamp(12px, 1.55vw, 17px);
+      font-weight: 700;
+      line-height: 1.65;
+      letter-spacing: 0.3px;
+      white-space: pre-line;
+    }
+
+    .dialog-text::after {
+      display: inline-block;
+      width: 6px;
+      height: 1em;
+      margin-left: 3px;
+      vertical-align: -2px;
+      content: "";
+      background: #b87887;
+      animation: caret 700ms steps(2, end) infinite;
+    }
+
+    .dialogue-panel.is-typed .dialog-text::after {
+      display: none;
+    }
+
+    @keyframes caret {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    .dialog-choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .dialog-choice {
+      padding: 7px 15px;
+      color: #69474d;
+      font-size: clamp(10px, 1.15vw, 13px);
+      font-weight: 900;
+      background: #ffe1e7;
+      border: 3px solid #9d6875;
+      box-shadow: 3px 3px 0 #e9b6c0;
+      transition: background 120ms ease, transform 120ms ease;
+    }
+
+    .dialog-choice:hover {
+      background: #ffd0da;
+      transform: translate(-1px, -1px);
+    }
+
+    .dialog-choice::before {
+      color: #c56f88;
+      content: "♥ ";
+    }
+
+    .dialog-choice.is-intimate {
+      color: #fff8f0;
+      background: linear-gradient(135deg, #c85f7a, #a94865);
+      border-color: #6e3e4c;
+      box-shadow:
+        3px 3px 0 #8d4a5e,
+        inset 0 0 0 2px rgba(255, 238, 232, 0.24);
+      animation: intimate-glow 1.6s steps(3, end) infinite;
+    }
+
+    .dialog-choice.is-intimate::before {
+      color: #ffd9df;
+      content: "♥♥ ";
+    }
+
+    @keyframes intimate-glow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.12); }
+    }
+
+    .dialog-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 14px;
+      margin-top: 7px;
+      color: #9b6a70;
+      font-size: clamp(8px, 0.9vw, 10px);
+      font-weight: 800;
+    }
+
+    .dialog-close {
+      position: absolute;
+      top: -14px;
+      right: -12px;
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      color: #fff9ee;
+      font-size: 16px;
+      font-weight: 900;
+      background: #c8788e;
+      border: 3px solid #6e4c51;
+      box-shadow: 3px 3px 0 rgba(92, 58, 62, 0.2);
+    }
+
+    .continue-indicator {
+      color: #c56e86;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      animation: continue-bob 700ms steps(2, end) infinite;
+    }
+
+    @keyframes continue-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(3px); }
+    }
+
+    /* ==================== 提示、帮助与爱心特效 ==================== */
+    .toast {
+      position: absolute;
+      z-index: 240;
+      top: 86px;
+      left: 50%;
+      max-width: min(82%, 520px);
+      padding: 8px 15px;
+      color: #65464c;
+      font-size: clamp(10px, 1.15vw, 13px);
+      font-weight: 800;
+      line-height: 1.5;
+      text-align: center;
+      background: rgba(255, 250, 241, 0.94);
+      border: 3px solid #7a565a;
+      box-shadow: 4px 4px 0 rgba(98, 64, 68, 0.15);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -9px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .help-modal,
+    .wardrobe-modal {
+      position: absolute;
+      z-index: 500;
+      inset: 0;
+      display: grid;
+      padding: 20px;
+      place-items: center;
+      background: rgba(83, 55, 62, 0.46);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 180ms ease, visibility 180ms;
+    }
+
+    .help-modal.is-open,
+    .wardrobe-modal.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .help-card {
+      position: relative;
+      width: min(92%, 470px);
+      padding: clamp(18px, 2.5vw, 27px);
+      background: #fff9ef;
+      border: 4px solid #694a4f;
+      box-shadow:
+        0 0 0 5px #ffd8e0,
+        0 0 0 9px #fff9ef,
+        10px 10px 0 rgba(76, 46, 51, 0.28);
+    }
+
+    .help-card h2 {
+      margin: 0 0 13px;
+      color: #65444a;
+      font-size: clamp(17px, 2.5vw, 23px);
+      letter-spacing: 2px;
+    }
+
+    .help-row {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: clamp(10px, 1.25vw, 13px);
+      line-height: 1.55;
+      border-bottom: 2px dashed #e8c8c5;
+    }
+
+    .help-row strong {
+      color: #b7657d;
+    }
+
+    .help-note {
+      margin: 13px 0 0;
+      color: #8e6267;
+      font-size: clamp(9px, 1.1vw, 11px);
+      line-height: 1.65;
+    }
+
+    .help-close {
+      width: 100%;
+      margin-top: 16px;
+      padding: 9px;
+      color: #fff8ef;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: #cf7f94;
+      border: 3px solid #65464c;
+      box-shadow: 4px 4px 0 #e5b3bf;
+    }
+
+    .wardrobe-card {
+      position: relative;
+      width: min(94%, 720px);
+      max-height: 90%;
+      overflow: auto;
+      padding: clamp(17px, 2.2vw, 26px);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.42) 25%, transparent 25%) 0 0 / 18px 18px,
+        #fff9ef;
+      border: 4px solid #694a4f;
+      box-shadow:
+        0 0 0 5px #ffd8e0,
+        0 0 0 9px #fff9ef,
+        10px 10px 0 rgba(76, 46, 51, 0.28);
+    }
+
+    .wardrobe-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .wardrobe-heading h2 {
+      margin: 0;
+      color: #65444a;
+      font-size: clamp(17px, 2.55vw, 24px);
+      letter-spacing: 2px;
+    }
+
+    .wardrobe-heading p {
+      margin: 3px 0 0;
+      color: #986c72;
+      font-size: clamp(9px, 1.1vw, 11px);
+      font-weight: 700;
+    }
+
+    .wardrobe-mark {
+      padding: 4px 8px;
+      color: #a95e74;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+      background: #ffe2e7;
+      border: 2px solid #aa6d79;
+    }
+
+    .outfit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(8px, 1.5vw, 14px);
+    }
+
+    .outfit-option {
+      position: relative;
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 8px 11px;
+      overflow: hidden;
+      background: #fff4ee;
+      border: 3px solid #b8838f;
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.7),
+        3px 4px 0 rgba(107, 71, 74, 0.13);
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    .outfit-option:hover {
+      background: #ffe9ec;
+      transform: translateY(-2px);
+    }
+
+    .outfit-option.is-selected {
+      background: #ffe0e7;
+      border-color: #a74f69;
+      box-shadow:
+        inset 0 0 0 3px #fff7ef,
+        0 0 0 3px #eaa8b8,
+        3px 4px 0 rgba(107, 71, 74, 0.15);
+    }
+
+    .outfit-preview {
+      display: grid;
+      width: min(100%, 118px);
+      aspect-ratio: 1;
+      margin-bottom: 6px;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.75), transparent 55%),
+        #f8dce1;
+      border: 2px solid #b9868d;
+    }
+
+    .outfit-preview svg,
+    .outfit-preview .outfit-preview-img {
+      width: 104%;
+      height: 104%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 3px 0 rgba(93, 59, 61, 0.12));
+    }
+
+    .outfit-label {
+      color: #66464c;
+      font-size: clamp(10px, 1.15vw, 13px);
+      font-weight: 900;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .outfit-desc {
+      margin-top: 4px;
+      color: #987078;
+      font-size: clamp(8px, 0.9vw, 10px);
+      font-weight: 700;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .outfit-check {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: none;
+      padding: 2px 5px;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 900;
+      background: #bd5f79;
+      border: 2px solid #744b53;
+    }
+
+    .outfit-option.is-selected .outfit-check {
+      display: block;
+    }
+
+    .wardrobe-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .wardrobe-tip {
+      color: #95686f;
+      font-size: clamp(8px, 1vw, 10px);
+      font-weight: 700;
+    }
+
+    .wardrobe-confirm {
+      flex: 0 0 auto;
+      padding: 8px 20px;
+      color: #fff8ef;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: #cf7f94;
+      border: 3px solid #65464c;
+      box-shadow: 4px 4px 0 #e5b3bf;
+    }
+
+    .heart-particle {
+      position: absolute;
+      z-index: 260;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+      background: #ed8fa6;
+      clip-path: polygon(0 20%, 45% 20%, 45% 0, 55% 0, 55% 20%, 100% 20%, 100% 75%, 55% 75%, 55% 100%, 45% 100%, 45% 75%, 0 75%);
+      animation: heart-float 1.15s steps(8, end) forwards;
+    }
+
+    @keyframes heart-float {
+      0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate(var(--drift), -78px) scale(1.18); }
+    }
+
+    .scene-flash {
+      position: absolute;
+      z-index: 190;
+      inset: 0;
+      background: #fff8eb;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .scene-flash.play {
+      animation: scene-flash 500ms ease-out;
+    }
+
+    @keyframes scene-flash {
+      0% { opacity: 0.42; }
+      100% { opacity: 0; }
+    }
+
+    /* ==================== 移动端适配 ==================== */
+    @media (max-width: 740px) and (orientation: portrait) {
+      .page-shell {
+        padding: 0;
+      }
+
+      .game-shell {
+        width: 100vw;
+        height: 100dvh;
+        aspect-ratio: auto;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .hud {
+        top: 12px;
+        right: 10px;
+        left: 10px;
+      }
+
+      .brand-card {
+        padding: 5px 8px 5px 5px;
+      }
+
+      .brand-heart {
+        width: 26px;
+        height: 25px;
+        font-size: 14px;
+      }
+
+      .brand-subtitle,
+      .love-label,
+      .love-box {
+        display: none;
+      }
+
+      .clock-box {
+        min-width: 77px;
+        padding: 3px 6px;
+      }
+
+      .clock-period {
+        font-size: 8px;
+      }
+
+      .icon-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 13px;
+      }
+
+      .status-card {
+        min-height: 35px;
+      }
+
+      .wardrobe-card {
+        width: min(96%, 470px);
+        padding: 14px;
+      }
+
+      .wardrobe-heading {
+        align-items: flex-start;
+      }
+
+      .outfit-grid {
+        gap: 6px;
+      }
+
+      .outfit-option {
+        padding: 7px 4px 8px;
+      }
+
+      .outfit-preview {
+        width: 100%;
+      }
+
+      .outfit-desc {
+        display: none;
+      }
+
+      .window {
+        top: 16%;
+        left: 10%;
+        width: 39%;
+        height: 20%;
+      }
+
+      .curtain {
+        top: 12%;
+        width: 19%;
+        height: 28%;
+      }
+
+      .curtain-left { left: 6%; }
+      .curtain-right { left: 43%; }
+
+      .garland {
+        top: 8%;
+        left: 54%;
+        width: 40%;
+      }
+
+      .wall-frame {
+        top: 18%;
+        right: 8%;
+        width: 20%;
+      }
+
+      .wall-clock {
+        top: 33%;
+        right: 13%;
+      }
+
+      .floor-lamp {
+        top: 36%;
+        left: 73%;
+      }
+
+      .sofa {
+        top: 49%;
+        left: 3%;
+        width: 47%;
+        height: 20%;
+      }
+
+      .coffee-table {
+        top: 67%;
+        left: 26%;
+        width: 42%;
+        height: 14%;
+      }
+
+      .bookshelf {
+        top: 42%;
+        right: 1%;
+        width: 25%;
+        height: 23%;
+      }
+
+      .rug {
+        left: 20%;
+        top: 76%;
+        width: 67%;
+        height: 15%;
+      }
+
+      .cat-bed {
+        top: 84%;
+        left: 55%;
+        width: 25%;
+      }
+
+      .qiqi {
+        top: 76%;
+        left: 74%;
+      }
+
+      .cat {
+        top: 89%;
+        left: 66%;
+      }
+
+      .toast {
+        top: 64px;
+        max-width: 90%;
+      }
+
+      .movement-controls {
+        bottom: 22px;
+        left: 15px;
+      }
+
+      .joystick {
+        width: 92px;
+      }
+
+      .action-wrap {
+        right: 16px;
+        bottom: 24px;
+      }
+
+      .action-btn {
+        width: 65px;
+      }
+
+      .action-hint {
+        max-width: 140px;
+        font-size: 9px;
+      }
+
+      .dialogue-panel {
+        right: 3.5%;
+        bottom: 3%;
+        left: 3.5%;
+        grid-template-columns: 56px minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .dialog-name {
+        top: -15px;
+        left: 73px;
+        padding: 3px 9px;
+      }
+
+      .dialog-text {
+        min-height: 48px;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .dialog-choice {
+        padding: 6px 11px;
+      }
+    }
+
+    @media (max-height: 520px) {
+      .brand-subtitle,
+      .love-label {
+        display: none;
+      }
+
+      .brand-card {
+        padding: 5px 8px 5px 5px;
+      }
+
+      .brand-heart {
+        width: 26px;
+        height: 25px;
+      }
+
+      .icon-btn {
+        width: 35px;
+        height: 35px;
+      }
+
+      .joystick {
+        width: 72px;
+      }
+
+      .action-btn {
+        width: 54px;
+      }
+
+      .dialogue-panel {
+        grid-template-columns: 54px minmax(0, 1fr);
+        padding: 9px 12px;
+      }
+
+      .dialog-text {
+        min-height: 35px;
+        font-size: 11px;
+      }
+
+      .dialog-choices {
+        margin-top: 5px;
+      }
+
+      .dialog-choice {
+        padding: 5px 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 三个像素角色共用一套 SVG 图形，场景与头像都会引用这里 -->
+  <!-- 粉白色像素加载画面 -->
+  <div class="loading-screen" id="loadingScreen" aria-live="polite">
+    <div class="loading-card">
+      <div class="loader-couple" aria-hidden="true">
+        <img class="loader-pixel" data-sprite="jianjian" alt="" draggable="false">
+        <svg class="loader-heart" viewBox="0 0 100 100"><path fill="#e892a8" d="M15 28h23v-14h24v14h23v34h-12v12H54v13H46V74H35V62H23V50H15z"/></svg>
+        <img class="loader-pixel" data-sprite="qiqi-white" alt="" draggable="false">
+      </div>
+      <h1 class="loader-title">奶油小屋</h1>
+      <p class="loader-subtitle">健健 ♥ 琦琦 · 一个只属于两人的小小世界</p>
+      <div class="loading-track"><div class="loading-bar" id="loadingBar"></div></div>
+      <div class="loading-label">
+        <span id="loadingText">正在点亮房间里的小灯…</span>
+        <span id="loadingPercent">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="page-shell">
+    <section class="game-shell" id="gameShell" data-period="day" aria-label="健健与琦琦的像素小屋游戏">
+      <div class="scene" id="scene">
+        <div class="wall">
+          <div class="wallpaper-dots"></div>
+          <i class="wall-stripe"></i>
+          <i class="wall-stripe"></i>
+        </div>
+        <div class="floor"></div>
+        <div class="wainscot"></div>
+        <div class="upper-trim"></div>
+
+        <div class="window" aria-hidden="true">
+          <div class="window-sky"></div>
+        </div>
+        <div class="curtain curtain-left" aria-hidden="true"></div>
+        <div class="curtain curtain-right" aria-hidden="true"></div>
+        <div class="garland" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="wall-frame" aria-hidden="true"></div>
+        <div class="wall-clock" id="wallClock" aria-hidden="true"></div>
+
+        <div class="rug" aria-hidden="true"></div>
+        <div class="cat-bed" aria-hidden="true"></div>
+
+        <button class="furniture sofa" data-furniture="sofa" aria-label="和奶油沙发互动">
+          <span class="sofa-back"></span>
+          <span class="sofa-cushion left"></span>
+          <span class="sofa-cushion right"></span>
+          <span class="sofa-seat"></span>
+          <span class="sofa-arm left"></span>
+          <span class="sofa-arm right"></span>
+          <span class="sofa-throw"></span>
+          <span class="sofa-foot left"></span>
+          <span class="sofa-foot right"></span>
+        </button>
+
+        <div class="floor-lamp" aria-hidden="true">
+          <i class="lamp-glow"></i>
+          <i class="lamp-shade"></i>
+          <i class="lamp-pole"></i>
+          <i class="lamp-base"></i>
+        </div>
+
+        <button class="furniture coffee-table" data-furniture="table" aria-label="查看奶油木桌上的东西">
+          <span class="table-top"></span>
+          <span class="table-leg left"></span>
+          <span class="table-leg right"></span>
+          <span class="table-books"></span>
+          <span class="table-mug"></span>
+          <span class="table-cookie"></span>
+        </button>
+
+        <button class="furniture bookshelf" data-furniture="shelf" aria-label="查看书架和唱片机">
+          <span class="plant-pot">
+            <i class="plant-leaf l1"></i>
+            <i class="plant-leaf l2"></i>
+            <i class="plant-leaf l3"></i>
+          </span>
+          <span class="record-player"></span>
+          <i class="book b1"></i><i class="book b2"></i><i class="book b3"></i>
+          <i class="book b4"></i><i class="book b5"></i>
+          <i class="book upper b6"></i><i class="book upper b7"></i><i class="book upper b8"></i>
+        </button>
+
+        <button class="character qiqi" id="qiqi" aria-label="靠近后和琦琦聊天">
+          <span class="name-tag">琦琦</span>
+          <img class="character-img" id="qiqiSpriteImg" data-sprite="qiqi-white" alt="" draggable="false">
+        </button>
+
+        <button class="character cat" id="cat" aria-label="靠近后和小猫聊天">
+          <span class="name-tag">小猫</span>
+          <img class="character-img" data-sprite="cat" alt="" draggable="false">
+        </button>
+
+        <div class="character" id="player" aria-label="健健">
+          <span class="name-tag">健健</span>
+          <span class="sprite-holder" data-facing="right">
+            <img class="character-img" data-sprite="jianjian" alt="" draggable="false">
+          </span>
+        </div>
+
+        <div class="scene-flash" id="sceneFlash"></div>
+      </div>
+
+      <header class="hud">
+        <div class="brand-card">
+          <div class="brand-heart" aria-hidden="true">♥</div>
+          <div>
+            <h1 class="brand-title">奶油小屋</h1>
+            <p class="brand-subtitle">健健与琦琦的像素日常</p>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="status-card">
+            <div class="clock-box">
+              <time class="clock-time" id="clockTime">--:--:--</time>
+              <span class="clock-period" id="clockPeriod">加载中</span>
+            </div>
+            <div class="love-box">
+              <span class="love-label">心动值</span>
+              <span class="hearts" id="hearts" aria-label="心动值 2 颗心">♥♥♡♡♡</span>
+            </div>
+          </div>
+          <button class="icon-btn" id="outfitBtn" type="button" aria-label="打开琦琦的衣柜" title="琦琦的衣柜（C）">衣</button>
+          <button class="icon-btn" id="soundBtn" type="button" aria-label="开启音效" title="音效">♪</button>
+          <button class="icon-btn" id="helpBtn" type="button" aria-label="打开操作说明" title="操作说明">?</button>
+        </div>
+      </header>
+
+      <div class="movement-controls">
+        <div class="joystick" id="joystick" role="application" aria-label="虚拟移动摇杆">
+          <span class="joystick-hint">移动</span>
+          <span class="joystick-knob" id="joystickKnob"></span>
+        </div>
+      </div>
+
+      <div class="action-wrap">
+        <div class="action-hint" id="actionHint">靠近角色即可聊天</div>
+        <button class="action-btn" id="actionBtn" type="button" aria-label="互动">互动<br>SPACE</button>
+      </div>
+
+      <section class="dialogue-panel" id="dialoguePanel" aria-live="polite" aria-label="角色对话">
+        <button class="dialog-close" id="dialogClose" type="button" aria-label="关闭对话">×</button>
+        <div class="portrait-frame" aria-hidden="true">
+          <img class="portrait-img" id="dialogPortraitImg" data-sprite="qiqi-white" alt="" draggable="false">
+        </div>
+        <div class="dialog-content">
+          <div class="dialog-name" id="dialogName">琦琦</div>
+          <p class="dialog-text" id="dialogText"></p>
+          <div class="dialog-choices" id="dialogChoices"></div>
+          <div class="dialog-footer">
+            <span id="dialogHint">点击对话框继续</span>
+            <span class="continue-indicator" id="continueIndicator">▼</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status"></div>
+
+      <div class="help-modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="help-card">
+          <h2 id="helpTitle">奶油小屋 · 操作手册</h2>
+          <div class="help-row"><strong>电脑</strong><span>方向键或 WASD 移动，空格 / 回车互动，Esc 关闭对话。</span></div>
+          <div class="help-row"><strong>手机</strong><span>拖动左下角摇杆移动，靠近角色后轻点“互动”按钮。</span></div>
+          <div class="help-row"><strong>琦琦</strong><span>问候会随现实时间变化；好感度满后，会解锁只属于情侣的暧昧选项。</span></div>
+          <div class="help-row"><strong>换装</strong><span>点击右上角“衣”或按 C 键，为琦琦切换三套风格。</span></div>
+          <div class="help-row"><strong>房间</strong><span>沙发、桌子、书架都可以直接点击，也可能藏着情侣小彩蛋。</span></div>
+          <p class="help-note">健健留着蓬松深棕短发，穿宽松黑色衣裤；琦琦留着棕色斜刘海长卷发，衣柜里有三套随时可换的穿搭。小猫喜欢在暖洋洋的猫窝边打盹。</p>
+          <button class="help-close" id="helpClose" type="button">回到小屋</button>
+        </div>
+      </div>
+
+      <div class="wardrobe-modal" id="wardrobeModal" role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle">
+        <div class="wardrobe-card">
+          <div class="wardrobe-heading">
+            <div>
+              <h2 id="wardrobeTitle">琦琦的衣柜</h2>
+              <p>今天想穿哪一套，和健健一起度过小屋时光？</p>
+            </div>
+            <span class="wardrobe-mark">3 OUTFITS</span>
+          </div>
+
+          <div class="outfit-grid">
+            <button class="outfit-option" type="button" data-outfit="mint" aria-label="选择薄荷外搭、吊带和短裤">
+              <span class="outfit-check">穿着中</span>
+              <span class="outfit-preview" aria-hidden="true">
+                <img class="outfit-preview-img" data-sprite="qiqi-mint" alt="" draggable="false">
+              </span>
+              <span class="outfit-label">薄荷外搭</span>
+              <span class="outfit-desc">吊带背心 · 浅蓝短裤</span>
+            </button>
+
+            <button class="outfit-option" type="button" data-outfit="sailor" aria-label="选择黑色水手服">
+              <span class="outfit-check">穿着中</span>
+              <span class="outfit-preview" aria-hidden="true">
+                <img class="outfit-preview-img" data-sprite="qiqi-sailor" alt="" draggable="false">
+              </span>
+              <span class="outfit-label">黑色水手服</span>
+              <span class="outfit-desc">白色衣领 · 红色领结</span>
+            </button>
+
+            <button class="outfit-option" type="button" data-outfit="white" aria-label="选择初恋风小白裙">
+              <span class="outfit-check">穿着中</span>
+              <span class="outfit-preview" aria-hidden="true">
+                <img class="outfit-preview-img" data-sprite="qiqi-white" alt="" draggable="false">
+              </span>
+              <span class="outfit-label">初恋小白裙</span>
+              <span class="outfit-desc">柔软泡泡袖 · 粉色蝴蝶结</span>
+            </button>
+          </div>
+
+          <div class="wardrobe-footer">
+            <span class="wardrobe-tip">换装会同步到房间人物与聊天头像</span>
+            <button class="wardrobe-confirm" id="wardrobeClose" type="button">就穿这套</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <noscript>请开启 JavaScript，才能进入奶油小屋。</noscript>
+
+  <script>
+    /* ============================================================
+       壹 · 元素与基础状态
+       ============================================================ */
+    const $ = (selector) => document.querySelector(selector);
+    const scene = $("#scene");
+    const gameShell = $("#gameShell");
+    const player = $("#player");
+    const qiqiEl = $("#qiqi");
+    const qiqiSpriteImg = $("#qiqiSpriteImg");
+    const catEl = $("#cat");
+    const joystick = $("#joystick");
+    const joystickKnob = $("#joystickKnob");
+    const actionBtn = $("#actionBtn");
+    const actionHint = $("#actionHint");
+    const dialoguePanel = $("#dialoguePanel");
+    const dialogName = $("#dialogName");
+    const dialogText = $("#dialogText");
+    const dialogChoices = $("#dialogChoices");
+    const dialogHint = $("#dialogHint");
+    const continueIndicator = $("#continueIndicator");
+    const dialogPortraitImg = $("#dialogPortraitImg");
+    const toastEl = $("#toast");
+    const helpModal = $("#helpModal");
+    const wardrobeModal = $("#wardrobeModal");
+    const outfitBtn = $("#outfitBtn");
+    const soundBtn = $("#soundBtn");
+    const clockTime = $("#clockTime");
+    const clockPeriod = $("#clockPeriod");
+    const heartsEl = $("#hearts");
+    const sceneFlash = $("#sceneFlash");
+
+    const state = {
+      x: 31,
+      y: 86,
+      facing: "right",
+      moving: false,
+      keys: new Set(),
+      joystick: { x: 0, y: 0, pointerId: null },
+      dialogOpen: false,
+      typing: false,
+      loading: true,
+      helpOpen: false,
+      wardrobeOpen: false,
+      qiqiOutfit: "white",
+      nearTarget: null,
+      autoTalkTarget: null,
+      autoTalkTimer: null,
+      affection: 2,
+      lastGreetedPeriod: null,
+      lastLines: {},
+      toastTimer: null,
+      typeTimer: null,
+      currentChoices: [],
+      soundOn: false,
+      audioContext: null,
+      lastFrame: performance.now()
+    };
+
+    const periodNames = {
+      morning: "清晨 · 早安",
+      day: "白日 · 暖洋洋",
+      evening: "傍晚 · 回家啦",
+      night: "深夜 · 晚安",
+      late: "凌晨 · 该睡啦"
+    };
+
+    /* 角色可到达的互动点与房间碰撞区域 */
+    const interactionTargets = [
+      { id: "qiqi", kind: "npc", x: 73, y: 80, radius: 9.5, label: "和琦琦聊天" },
+      { id: "cat", kind: "npc", x: 66.5, y: 88, radius: 8.7, label: "和小猫说说话" },
+      { id: "sofa", kind: "furniture", x: 17, y: 82, radius: 9, label: "看看奶油沙发" },
+      { id: "table", kind: "furniture", x: 50, y: 84, radius: 8.5, label: "看看桌上的点心" },
+      { id: "shelf", kind: "furniture", x: 91, y: 73, radius: 8.5, label: "看看书架和唱片机" }
+    ];
+
+    const colliders = [
+      { x1: 4, x2: 30, y1: 55, y2: 76 },
+      { x1: 39, x2: 60.5, y1: 67, y2: 81 },
+      { x1: 83, x2: 98, y1: 39, y2: 70 }
+    ];
+
+    /* ============================================================
+       贰 · 对话素材
+       ============================================================ */
+    const qiqiGreetings = {
+      morning: [
+        "早安呀，哥哥。窗边的光刚刚好，我一醒来就想先看到你。",
+        "早上好～今天的空气闻起来甜甜的。哥哥昨晚有没有梦到我呀？",
+        "早安，哥哥！小懒虫终于起来啦，琦琦已经等你一起吃早餐了。"
+      ],
+      day: [
+        "哥哥今天想吃什么呀？冰箱里还有草莓，我们可以一起做甜甜的点心。",
+        "阳光照进房间啦，哥哥忙完记得休息一会儿，来陪琦琦坐坐嘛。",
+        "今天也最喜欢哥哥了。不是随口说说，是认真想了很久才告诉你的。"
+      ],
+      evening: [
+        "哥哥回来啦！灯已经打开了，沙发也留给哥哥。今天辛苦吗？",
+        "傍晚的风好舒服呀，我们就这样挨在一起发一会儿呆，好不好？",
+        "哥哥，今天最喜欢的一刻，就是现在见到你的时候。"
+      ],
+      night: [
+        "这么晚还不睡呀，哥哥？琦琦已经有点困了，但还想再陪你一会儿。晚安，要做甜甜的梦。",
+        "夜深啦。哥哥今天也辛苦了，把烦恼放在房间外面吧。抱一下，然后乖乖睡觉，晚安。",
+        "晚上的小屋好安静。哥哥，今天最后一句想听什么？琦琦最想说的是……晚安呀。"
+      ],
+      late: [
+        "已经这么晚啦，哥哥还不睡觉吗？琦琦陪你到说完晚安为止，然后我们要一起钻进被窝。",
+        "凌晨了哦，小夜猫。今天已经很努力了，剩下的事情明天再想。哥哥晚安，闭上眼睛吧。",
+        "嘘——小猫都睡熟了。哥哥也快点休息吧，晚安，明天醒来还要第一眼见到你。"
+      ]
+    };
+
+    const qiqiDailyLines = [
+      "哥哥我好想你呀。明明就坐在旁边，还是忍不住想再说一遍。",
+      "哥哥你今天想吃什么呀？我可以负责点菜，哥哥负责变出来。",
+      "刚刚看到哥哥认真走路的样子，觉得好可爱，琦琦偷偷笑了。",
+      "如果今天可以存成一张照片，我想存下现在这个房间，还有哥哥。",
+      "健健哥哥，过来一点嘛。琦琦有一个很小很小的悄悄话要讲。",
+      "小猫刚刚一直盯着哥哥看，它一定也觉得哥哥很温柔。",
+      "今天想和哥哥一起窝在沙发上，看一部慢吞吞的老电影。",
+      "哥哥的眼镜又滑下来了，我帮你推上去好不好？",
+      "如果生活是像素游戏，我希望我们的存档里每天都有彼此。",
+      "琦琦今天也有好好喜欢哥哥，比昨天多一点点。",
+      "哥哥别站在那儿发呆啦，来坐我旁边，位置一直给你留着。",
+      "我刚刚在想，要是每一句早安和晚安都能亲手送给哥哥就好了。"
+    ];
+
+    const qiqiActions = [
+      { label: "亲亲", key: "kiss" },
+      { label: "抱抱", key: "hug" },
+      { label: "摸摸头", key: "headpat" }
+    ];
+
+    const qiqiResponses = {
+      kiss: [
+        "啵——哥哥偷袭！琦琦的脸一定已经红透了，不许笑话我。",
+        "这个亲亲先收好啦。琦琦会把它偷偷藏在心里最软的位置。",
+        "唔……才一下怎么够嘛。哥哥靠近一点，再补一个更乖的。"
+      ],
+      hug: [
+        "被哥哥抱住的时候，整个世界都软绵绵的。再多抱三秒，好不好？",
+        "琦琦把耳朵贴在哥哥肩上，能听见心跳。扑通扑通的，我们的好像同一个节奏。",
+        "抱紧一点嘛。今天积攒的所有不开心，好像都被哥哥抱碎啦。"
+      ],
+      headpat: [
+        "嘿嘿……像摸摸小猫一样摸我。琦琦才没有偷偷蹭哥哥的手心呢。",
+        "哥哥的手暖暖的。再摸一下，琦琦今天就会变成全世界最乖的小孩。",
+        "摸头收下了！现在琦琦充满电，可以继续陪哥哥很久很久。"
+      ],
+      intimate: [
+        "琦琦的耳尖一下子红透了。她轻轻拉住健健的衣角，声音低得像耳语：「灯……要不要先关掉？今晚的话，只想让哥哥听见。」\n剩下的话，被柔软的夜色和关上的房门悄悄收好。",
+        "「可以哦……不过哥哥要先答应我，今晚只听我的。」琦琦红着脸扣紧你的手指，把额头轻轻贴在你的肩窝。\n灯光慢慢熄灭，小猫识趣地跳回自己的窝里。",
+        "「哥哥真是的……明明知道琦琦会害羞。」她把滚烫的脸藏进你的怀里，小声补了一句，「那就……再抱紧一点。」\n画面在交织的心跳声里悄悄淡下。"
+      ]
+    };
+
+    const catLines = [
+      "喵呜～（小猫歪着脑袋看你，像在问：今天有零食吗？）",
+      "喵。（它把软乎乎的爪子搭在你的鞋尖上，决定原谅你迟到的摸摸。）",
+      "咕噜咕噜……（小猫一靠近就发出了小引擎一样的声音。）",
+      "喵嗷？（它严肃地盯着窗外，好像在视察属于自己的王国。）",
+      "咪～（小猫用尾巴扫了扫你的裤脚，这是在打招呼。）",
+      "喵喵！（它绕着猫窝转了一圈，暗示那个最舒服的位置可以分你一半。）",
+      "呼噜……（小猫眯起眼睛，已经把你当成会自动发热的抱枕。）",
+      "喵～（它用鼻尖碰了碰你的手指，短暂地宣布：你是我的了。）",
+      "咪呜。（小猫看了一眼琦琦，又看了一眼你，仿佛在监督你们有没有好好相爱。）",
+      "喵呜喵呜！（它突然追着自己的尾巴跑了一圈，又若无其事地坐下。）",
+      "呼噜呼噜……（小猫翻出肚皮，但没有允许你摸，这是个严格的考验。）",
+      "喵。（小猫在猫窝里踩了踩奶，给今天打了一百分。）"
+    ];
+
+    const furnitureDialog = {
+      sofa: {
+        speaker: "jianjian",
+        name: "健健",
+        text: "奶油色沙发被阳光晒得暖烘烘的。琦琦在沙发角落留了她织的小毯子。",
+        choices: [
+          {
+            label: "坐下来充电",
+            action: () => openDialogue({
+              speaker: "jianjian",
+              name: "健健",
+              text: "健健一坐下就陷进了软垫里。紧绷了一天的肩膀，终于慢慢放松下来。\n今天也辛苦啦，休息也是很重要的事情。"
+            })
+          },
+          {
+            label: "去叫琦琦一起坐",
+            action: () => {
+              openDialogue({
+                speaker: "qiqi",
+                name: "琦琦",
+                text: "咦？沙发有哥哥旁边这个位置吗？那琦琦要坐最近的那一格。",
+                onClose: () => {
+                  state.affection = Math.min(5, state.affection + 1);
+                  updateHearts();
+                }
+              });
+              spawnHearts(3);
+            }
+          }
+        ]
+      },
+      table: {
+        speaker: "jianjian",
+        name: "健健",
+        text: "奶油木桌上放着两杯热可可和一小碟草莓饼干。饼干还是温热的。",
+        choices: [
+          {
+            label: "偷吃一块",
+            action: () => {
+              spawnHearts(2);
+              openDialogue({
+                speaker: "qiqi",
+                name: "琦琦",
+                text: "抓到啦！哥哥偷吃饼干。不过……看你吃得开心，今天就允许你多拿一块。"
+              });
+            }
+          },
+          {
+            label: "留一块给琦琦",
+            action: () => {
+              state.affection = Math.min(5, state.affection + 1);
+              updateHearts();
+              openDialogue({
+                speaker: "qiqi",
+                name: "琦琦",
+                text: "最后一小块是特意留给我的吗？嘿嘿……那琦琦也把最喜欢的那口留给哥哥。"
+              });
+            }
+          }
+        ]
+      },
+      shelf: {
+        speaker: "jianjian",
+        name: "健健",
+        text: "书架上有一台旧唱片机，旁边还夹着一张手写便签：「给最爱发呆的健健哥哥」。",
+        choices: [
+          {
+            label: "听一小段唱片",
+            action: () => {
+              if (!state.soundOn) toggleSound();
+              playMelody(true);
+              openDialogue({
+                speaker: "qiqi",
+                name: "琦琦",
+                text: "这张唱片是琦琦偷偷挑的。旋律慢慢的时候，我们就什么都不做，只靠在一起听。"
+              });
+            }
+          },
+          {
+            label: "看看旁边的书",
+            action: () => openDialogue({
+              speaker: "jianjian",
+              name: "健健",
+              text: "书名叫《如何让喜欢的人每天都开心》。\n书签停在一行手写小字旁：「多听她说话，记得抱抱她。」"
+            })
+          }
+        ]
+      }
+    };
+
+    /* ============================================================
+       叁 · 初始化、时钟与加载动画
+       ============================================================ */
+    function getPeriodByHour(hour) {
+      if (hour >= 5 && hour < 10) return "morning";
+      if (hour >= 10 && hour < 17) return "day";
+      if (hour >= 17 && hour < 23) return "evening";
+      if (hour >= 23 || hour < 2) return "night";
+      return "late";
+    }
+
+    let currentPeriod = "day";
+
+    function updateClock() {
+      const now = new Date();
+      const timeFormatter = new Intl.DateTimeFormat("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      clockTime.textContent = timeFormatter.format(now);
+      clockTime.dateTime = now.toISOString();
+      currentPeriod = getPeriodByHour(now.getHours());
+      clockPeriod.textContent = periodNames[currentPeriod];
+      gameShell.dataset.period = currentPeriod;
+    }
+
+    function updateHearts() {
+      heartsEl.textContent = "♥".repeat(state.affection) + "♡".repeat(5 - state.affection);
+      heartsEl.setAttribute("aria-label", `心动值 ${state.affection} 颗心`);
+      heartsEl.classList.toggle("is-full", state.affection >= 5);
+    }
+
+    function pickFresh(list, category) {
+      const previous = state.lastLines[category];
+      const pool = list.length > 1 ? list.filter((line) => line !== previous) : list;
+      const selected = pool[Math.floor(Math.random() * pool.length)];
+      state.lastLines[category] = selected;
+      return selected;
+    }
+
+    function showToast(message, duration = 3000) {
+      clearTimeout(state.toastTimer);
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      state.toastTimer = setTimeout(() => toastEl.classList.remove("show"), duration);
+    }
+
+    function runLoadingAnimation() {
+      const loadingBar = $("#loadingBar");
+      const loadingPercent = $("#loadingPercent");
+      const loadingText = $("#loadingText");
+      const texts = [
+        "正在点亮房间里的小灯…",
+        "把奶油沙发搬到窗边…",
+        "给小猫准备一个软枕头…",
+        "琦琦正在写下今天的问候…",
+        "小屋准备好了！"
+      ];
+      let progress = 0;
+      let step = 0;
+
+      const timer = setInterval(() => {
+        progress = Math.min(96, progress + Math.max(2, Math.floor(Math.random() * 8)));
+        loadingBar.style.width = `${progress}%`;
+        loadingPercent.textContent = `${progress}%`;
+        const nextStep = Math.min(texts.length - 1, Math.floor(progress / 21));
+        if (nextStep !== step) {
+          step = nextStep;
+          loadingText.textContent = texts[step];
+        }
+      }, 130);
+
+      setTimeout(() => {
+        clearInterval(timer);
+        loadingBar.style.width = "100%";
+        loadingPercent.textContent = "100%";
+        loadingText.textContent = texts[texts.length - 1];
+        setTimeout(() => {
+          $("#loadingScreen").classList.add("is-hidden");
+          $("#loadingScreen").setAttribute("aria-hidden", "true");
+          state.loading = false;
+          showToast("方向键 / 摇杆移动，靠近琦琦或小猫就会自动聊天。", 4800);
+        }, 420);
+      }, 1900);
+    }
+
+    /* ============================================================
+       肆 · 对话引擎与分支
+       ============================================================ */
+    function setPortrait(speaker) {
+      const map = {
+        qiqi: `qiqi-${state.qiqiOutfit}`,
+        cat: "cat",
+        jianjian: "jianjian"
+      };
+      dialogPortraitImg.src = spriteSources[map[speaker] || "jianjian"];
+    }
+
+    function clearTypeTimer() {
+      clearInterval(state.typeTimer);
+      state.typeTimer = null;
+      state.typing = false;
+    }
+
+    function finishTyping() {
+      if (!state.typing) return;
+      clearTypeTimer();
+      dialogText.textContent = state.fullDialogText;
+      dialoguePanel.classList.add("is-typed");
+      renderChoices();
+    }
+
+    function renderChoices() {
+      dialogChoices.replaceChildren();
+      const hasChoices = state.currentChoices.length > 0;
+      dialogHint.textContent = hasChoices
+        ? `选择一个回应 · 也可以按 1 - ${state.currentChoices.length}`
+        : "点击对话框或按空格继续";
+      continueIndicator.style.visibility = hasChoices ? "hidden" : "visible";
+      state.currentChoices.forEach((choice, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = choice.romantic ? "dialog-choice is-intimate" : "dialog-choice";
+        button.textContent = choice.label;
+        button.setAttribute("aria-label", `${index + 1}. ${choice.label}`);
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          chooseOption(index);
+        });
+        dialogChoices.appendChild(button);
+      });
+    }
+
+    function chooseOption(index) {
+      if (state.typing) finishTyping();
+      const choice = state.currentChoices[index];
+      if (!choice) return;
+      state.currentChoices = [];
+      dialogChoices.replaceChildren();
+      playTone(659, 0.1, 0.035);
+      choice.action();
+    }
+
+    function openDialogue(options) {
+      clearTypeTimer();
+      state.joystick.x = 0;
+      state.joystick.y = 0;
+      joystickKnob.style.transform = "translate(0, 0)";
+      state.dialogOpen = true;
+      state.currentChoices = options.choices || [];
+      state.dialogOnClose = options.onClose || null;
+      state.fullDialogText = options.text;
+      state.typing = true;
+      dialogName.textContent = options.name || "？？？";
+      dialogText.textContent = "";
+      dialogChoices.replaceChildren();
+      dialogHint.textContent = "点击文字可立即显示全部";
+      continueIndicator.style.visibility = "hidden";
+      setPortrait(options.speaker || "jianjian");
+      dialoguePanel.classList.add("is-open");
+      dialoguePanel.classList.remove("is-typed");
+      player.classList.remove("is-moving");
+      stopMovementKeys();
+      actionHint.textContent = "对话进行中";
+      playTone(options.speaker === "cat" ? 520 : 587, 0.08, 0.02);
+
+      let cursor = 0;
+      state.typeTimer = setInterval(() => {
+        cursor += 1;
+        dialogText.textContent = state.fullDialogText.slice(0, cursor);
+        if (cursor >= state.fullDialogText.length) {
+          clearTypeTimer();
+          dialoguePanel.classList.add("is-typed");
+          renderChoices();
+        }
+      }, 24);
+    }
+
+    function closeDialogue() {
+      if (!state.dialogOpen) return;
+      clearTypeTimer();
+      dialoguePanel.classList.remove("is-open");
+      state.dialogOpen = false;
+      state.currentChoices = [];
+      dialogChoices.replaceChildren();
+      const onClose = state.dialogOnClose;
+      state.dialogOnClose = null;
+      if (typeof onClose === "function") onClose();
+      updateNearbyTarget();
+    }
+
+    function advanceDialogue() {
+      if (state.typing) {
+        finishTyping();
+        return;
+      }
+      if (state.currentChoices.length === 0) closeDialogue();
+    }
+
+    function talkToQiqi() {
+      const greetingFresh = state.lastGreetedPeriod !== currentPeriod;
+      state.lastGreetedPeriod = currentPeriod;
+      let line;
+      if (greetingFresh) {
+        line = pickFresh(qiqiGreetings[currentPeriod], `greeting-${currentPeriod}`);
+      } else {
+        line = pickFresh(qiqiDailyLines, "qiqi-daily");
+      }
+
+      openDialogue({
+        speaker: "qiqi",
+        name: "琦琦",
+        text: line,
+        choices: [...qiqiActions, ...(state.affection >= 5
+          ? [{ label: "爱爱", key: "intimate", romantic: true }]
+          : [])].map((actionItem) => ({
+          label: actionItem.label,
+          action: () => respondToQiqi(actionItem.key),
+          romantic: Boolean(actionItem.romantic)
+        }))
+      });
+    }
+
+    function respondToQiqi(action) {
+      const wasFull = state.affection >= 5;
+      state.affection = Math.min(5, state.affection + 1);
+      updateHearts();
+      spawnHearts(action === "intimate" ? 9 : action === "kiss" ? 6 : 4);
+      sceneFlash.classList.remove("play");
+      void sceneFlash.offsetWidth;
+      sceneFlash.classList.add("play");
+
+      const responseText = pickFresh(qiqiResponses[action], `qiqi-${action}`);
+      openDialogue({
+        speaker: "qiqi",
+        name: "琦琦",
+        text: `${responseText}${!wasFull && state.affection >= 5
+          ? "\n\n♡ 心动值已满：下次和琦琦聊天时，会解锁新的亲密选项。"
+          : ""}`
+      });
+    }
+
+    function talkToCat() {
+      openDialogue({
+        speaker: "cat",
+        name: "小猫",
+        text: pickFresh(catLines, "cat")
+      });
+    }
+
+    function openFurniture(id) {
+      const data = furnitureDialog[id];
+      if (!data) return;
+      openDialogue({
+        speaker: data.speaker,
+        name: data.name,
+        text: data.text,
+        choices: data.choices
+      });
+    }
+
+    /* ============================================================
+       伍 · 移动、碰撞与靠近互动
+       ============================================================ */
+    function setPlayerPosition() {
+      player.style.left = `${state.x}%`;
+      player.style.top = `${state.y}%`;
+      player.style.zIndex = String(100 + Math.round(state.y));
+      player.querySelector(".sprite-holder").dataset.facing = state.facing;
+    }
+
+    function isBlocked(x, y) {
+      if (x < 4.5 || x > 96 || y < 55 || y > 94) return true;
+      const radius = 2.4;
+      return colliders.some((box) =>
+        x + radius > box.x1 &&
+        x - radius < box.x2 &&
+        y + 1 > box.y1 &&
+        y - 1 < box.y2
+      );
+    }
+
+    function distanceTo(target) {
+      return Math.hypot(state.x - target.x, state.y - target.y);
+    }
+
+    function getNearbyTarget() {
+      const sorted = interactionTargets
+        .map((target) => ({ target, distance: distanceTo(target) }))
+        .filter((item) => item.distance <= item.target.radius)
+        .sort((a, b) => a.distance - b.distance);
+      return sorted[0]?.target || null;
+    }
+
+    function updateNearbyTarget() {
+      const previousId = state.nearTarget?.id || null;
+      const next = getNearbyTarget();
+      state.nearTarget = next;
+      const nextId = next?.id || null;
+
+      qiqiEl.classList.toggle("is-near", nextId === "qiqi");
+      catEl.classList.toggle("is-near", nextId === "cat");
+
+      if (state.dialogOpen) {
+        actionHint.textContent = "对话进行中";
+      } else if (next) {
+        actionHint.textContent = `空格 / 互动 · ${next.label}`;
+      } else {
+        actionHint.textContent = "靠近角色即可聊天";
+      }
+
+      if (nextId !== previousId) {
+        if (next?.kind === "npc" && !state.dialogOpen && state.autoTalkTarget !== next.id) {
+          state.autoTalkTarget = next.id;
+          clearTimeout(state.autoTalkTimer);
+          state.autoTalkTimer = setTimeout(() => {
+            if (state.dialogOpen || state.loading || state.helpOpen || state.wardrobeOpen) return;
+            const stillNear = getNearbyTarget();
+            if (stillNear?.id === next.id) {
+              next.id === "qiqi" ? talkToQiqi() : talkToCat();
+            }
+          }, 420);
+        }
+        if (!nextId) state.autoTalkTarget = null;
+      }
+    }
+
+    function interactWithNearest() {
+      if (state.wardrobeOpen) return;
+      if (state.dialogOpen) {
+        advanceDialogue();
+        return;
+      }
+      const target = getNearbyTarget();
+      if (!target) {
+        showToast("再靠近一点，就能和琦琦、小猫或家具互动啦。");
+        return;
+      }
+      if (target.id === "qiqi") talkToQiqi();
+      else if (target.id === "cat") talkToCat();
+      else openFurniture(target.id);
+    }
+
+    function handleNpcClick(id) {
+      const target = interactionTargets.find((item) => item.id === id);
+      if (!target) return;
+      if (distanceTo(target) <= target.radius) {
+        id === "qiqi" ? talkToQiqi() : talkToCat();
+      } else {
+        const name = id === "qiqi" ? "琦琦" : "小猫";
+        showToast(`健健离${name}还有点远，先用方向键或摇杆走过去吧。`);
+      }
+    }
+
+    function stopMovementKeys() {
+      state.keys.clear();
+      state.moving = false;
+      player.classList.remove("is-moving");
+    }
+
+    function movementInput() {
+      let x = 0;
+      let y = 0;
+      if (state.keys.has("ArrowLeft") || state.keys.has("a")) x -= 1;
+      if (state.keys.has("ArrowRight") || state.keys.has("d")) x += 1;
+      if (state.keys.has("ArrowUp") || state.keys.has("w")) y -= 1;
+      if (state.keys.has("ArrowDown") || state.keys.has("s")) y += 1;
+      x += state.joystick.x;
+      y += state.joystick.y;
+      const length = Math.hypot(x, y);
+      if (length > 1) {
+        x /= length;
+        y /= length;
+      }
+      return { x, y, strength: Math.min(1, length) };
+    }
+
+    function gameLoop(now) {
+      const delta = Math.min(0.04, (now - state.lastFrame) / 1000);
+      state.lastFrame = now;
+
+      if (!state.loading && !state.dialogOpen && !state.helpOpen && !state.wardrobeOpen) {
+        const input = movementInput();
+        const isTryingToMove = Math.hypot(input.x, input.y) > 0.12;
+        if (isTryingToMove) {
+          const speed = 19 * Math.max(0.42, input.strength);
+          const nextX = state.x + input.x * speed * delta;
+          const nextY = state.y + input.y * speed * delta;
+
+          if (!isBlocked(nextX, state.y)) state.x = nextX;
+          if (!isBlocked(state.x, nextY)) state.y = nextY;
+
+          state.moving = true;
+          state.facing = input.x < -0.08 ? "left" : input.x > 0.08 ? "right" : state.facing;
+          player.classList.add("is-moving");
+          setPlayerPosition();
+          updateNearbyTarget();
+        } else {
+          state.moving = false;
+          player.classList.remove("is-moving");
+        }
+      } else {
+        state.moving = false;
+        player.classList.remove("is-moving");
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ============================================================
+       陆 · 摇杆、键盘和点击事件
+       ============================================================ */
+    let joystickRect = null;
+
+    function startJoystick(event) {
+      if (state.dialogOpen || state.loading || state.helpOpen || state.wardrobeOpen) return;
+      event.preventDefault();
+      joystickRect = joystick.getBoundingClientRect();
+      state.joystick.pointerId = event.pointerId;
+      joystick.setPointerCapture?.(event.pointerId);
+      moveJoystick(event.clientX, event.clientY);
+    }
+
+    function moveJoystick(clientX, clientY) {
+      if (!joystickRect) return;
+      const centerX = joystickRect.left + joystickRect.width / 2;
+      const centerY = joystickRect.top + joystickRect.height / 2;
+      const maxDistance = joystickRect.width * 0.29;
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const distance = Math.hypot(dx, dy);
+      if (distance > maxDistance) {
+        dx = (dx / distance) * maxDistance;
+        dy = (dy / distance) * maxDistance;
+      }
+      state.joystick.x = dx / maxDistance;
+      state.joystick.y = dy / maxDistance;
+      joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+
+    function endJoystick(event) {
+      if (state.joystick.pointerId !== event.pointerId) return;
+      state.joystick.pointerId = null;
+      state.joystick.x = 0;
+      state.joystick.y = 0;
+      joystickKnob.style.transform = "translate(0, 0)";
+    }
+
+    joystick.addEventListener("pointerdown", startJoystick);
+    joystick.addEventListener("pointermove", (event) => {
+      if (state.joystick.pointerId === event.pointerId) {
+        event.preventDefault();
+        moveJoystick(event.clientX, event.clientY);
+      }
+    });
+    joystick.addEventListener("pointerup", endJoystick);
+    joystick.addEventListener("pointercancel", endJoystick);
+
+    document.addEventListener("keydown", (event) => {
+      const code = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const movementKey = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d"].includes(code);
+
+      if (movementKey) {
+        if (!state.dialogOpen && !state.helpOpen && !state.wardrobeOpen && !state.loading) {
+          event.preventDefault();
+          state.keys.add(code);
+        }
+        return;
+      }
+
+      if (code === "c" && !state.dialogOpen && !state.loading && !state.helpOpen) {
+        event.preventDefault();
+        state.wardrobeOpen ? closeWardrobe() : openWardrobe();
+        return;
+      }
+
+      if (code === "Escape") {
+        if (state.wardrobeOpen) closeWardrobe();
+        else if (state.helpOpen) closeHelp();
+        else closeDialogue();
+        return;
+      }
+
+      if (code === " " || code === "Enter") {
+        if (state.helpOpen || state.wardrobeOpen) return;
+        event.preventDefault();
+        if (state.dialogOpen) advanceDialogue();
+        else interactWithNearest();
+        return;
+      }
+
+      const number = Number(code);
+      if (state.dialogOpen && !state.typing && number >= 1 && number <= state.currentChoices.length) {
+        chooseOption(number - 1);
+      } else if (state.wardrobeOpen && number >= 1 && number <= 3) {
+        selectOutfit(["mint", "sailor", "white"][number - 1]);
+      }
+    });
+
+    document.addEventListener("keyup", (event) => {
+      const code = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      state.keys.delete(code);
+    });
+
+    window.addEventListener("blur", stopMovementKeys);
+    window.addEventListener("resize", () => {
+      joystickRect = null;
+    });
+
+    dialoguePanel.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      advanceDialogue();
+    });
+
+    $("#dialogClose").addEventListener("click", closeDialogue);
+    actionBtn.addEventListener("click", interactWithNearest);
+    qiqiEl.addEventListener("click", () => handleNpcClick("qiqi"));
+    catEl.addEventListener("click", () => handleNpcClick("cat"));
+
+    document.querySelectorAll("[data-furniture]").forEach((element) => {
+      element.addEventListener("click", () => {
+        if (state.dialogOpen || state.helpOpen || state.wardrobeOpen) return;
+        openFurniture(element.dataset.furniture);
+      });
+    });
+
+    /* ============================================================
+       柒 · 音效与爱心特效
+       ============================================================ */
+    function ensureAudioContext() {
+      if (!state.audioContext) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) state.audioContext = new AudioContext();
+      }
+      if (state.audioContext?.state === "suspended") state.audioContext.resume();
+      return state.audioContext;
+    }
+
+    function playTone(frequency = 440, duration = 0.08, volume = 0.02, delay = 0) {
+      if (!state.soundOn) return;
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const start = ctx.currentTime + delay;
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(gain).connect(ctx.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.02);
+    }
+
+    function playMelody(romantic = false) {
+      if (!state.soundOn) return;
+      const notes = romantic
+        ? [523, 659, 784, 659, 587, 523]
+        : [523, 659, 784];
+      notes.forEach((note, index) => playTone(note, 0.16, 0.018, index * 0.17));
+    }
+
+    function toggleSound() {
+      state.soundOn = !state.soundOn;
+      soundBtn.classList.toggle("active", state.soundOn);
+      soundBtn.textContent = state.soundOn ? "♫" : "♪";
+      soundBtn.setAttribute("aria-label", state.soundOn ? "关闭音效" : "开启音效");
+      if (state.soundOn) {
+        ensureAudioContext();
+        playMelody(false);
+        showToast("音效已开启 · 旧唱片机也能播放旋律了。", 2200);
+      } else {
+        showToast("音效已关闭。", 1600);
+      }
+    }
+
+    soundBtn.addEventListener("click", toggleSound);
+
+    function spawnHearts(count = 4) {
+      const rect = gameShell.getBoundingClientRect();
+      for (let i = 0; i < count; i += 1) {
+        const heart = document.createElement("i");
+        heart.className = "heart-particle";
+        const sourceX = rect.width * 0.73;
+        const sourceY = rect.height * 0.70;
+        heart.style.left = `${sourceX + (Math.random() - 0.5) * 45}px`;
+        heart.style.top = `${sourceY + (Math.random() - 0.5) * 25}px`;
+        heart.style.setProperty("--drift", `${(Math.random() - 0.5) * 80}px`);
+        heart.style.animationDelay = `${i * 45}ms`;
+        if (i % 2) heart.style.background = "#f4b4c3";
+        gameShell.appendChild(heart);
+        setTimeout(() => heart.remove(), 1500 + i * 45);
+      }
+    }
+
+    /* ============================================================
+       捌 · 帮助面板与启动
+       ============================================================ */
+    function createSpriteCanvas(draw) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 48;
+      canvas.height = 56;
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      draw(ctx);
+      return canvas.toDataURL("image/png");
+    }
+
+    function drawCatArt(ctx) {
+      const p = (x, y, width, height, color) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, height);
+      };
+      // 身体和尾巴位于 48×56 画布底部中央
+      p(14, 43, 20, 9, "#e6b77b");
+      p(16, 42, 16, 2, "#f2cf99");
+      p(10, 39, 6, 3, "#c78d62");
+      p(7, 35, 4, 5, "#c78d62");
+      p(8, 32, 4, 4, "#d99b70");
+      p(15, 49, 6, 5, "#efc58c");
+      p(28, 49, 6, 5, "#e8bc84");
+      p(13, 51, 25, 5, "#ecc58d");
+      p(13, 38, 24, 9, "#edc48b");
+      p(15, 31, 20, 9, "#e9bd82");
+      p(12, 25, 26, 10, "#edc48c");
+      p(14, 20, 22, 8, "#eabd84");
+      p(15, 15, 5, 7, "#e6b47a");
+      p(29, 15, 5, 7, "#e6b47a");
+      p(16, 16, 3, 4, "#eaa7a3");
+      p(31, 16, 3, 4, "#eaa7a3");
+      p(17, 24, 16, 3, "#f5d9a9");
+      p(18, 28, 3, 4, "#5c433b");
+      p(30, 28, 3, 4, "#5c433b");
+      p(19, 28, 1, 1, "#fff8ef");
+      p(31, 28, 1, 1, "#fff8ef");
+      p(13, 34, 4, 2, "#eda3a1");
+      p(34, 34, 4, 2, "#eda3a1");
+      p(24, 36, 3, 1, "#bd7577");
+      p(23, 41, 3, 2, "#d14f68");
+      p(30, 41, 3, 2, "#d14f68");
+      p(26, 39, 4, 3, "#e6b052");
+    }
+
+    function createSpriteSources() {
+      return {
+        jianjian: "assets/jianjian.png",
+        "qiqi-white": "assets/qiqi-white.png",
+        "qiqi-mint": "assets/qiqi-mint.png",
+        "qiqi-sailor": "assets/qiqi-sailor.png",
+        cat: createSpriteCanvas(drawCatArt)
+      };
+    }
+
+    const spriteSources = createSpriteSources();
+    document.querySelectorAll("img[data-sprite]").forEach((image) => {
+      image.src = spriteSources[image.dataset.sprite];
+    });
+
+    const outfitNames = {
+      mint: "薄荷外搭 + 吊带短裤",
+      sailor: "黑色水手服",
+      white: "初恋风小白裙"
+    };
+
+    function applyOutfit(outfit, announce = true) {
+      if (!outfitNames[outfit]) return;
+      state.qiqiOutfit = outfit;
+      qiqiSpriteImg.src = spriteSources[`qiqi-${outfit}`];
+
+      document.querySelectorAll(".outfit-option").forEach((option) => {
+        const selected = option.dataset.outfit === outfit;
+        option.classList.toggle("is-selected", selected);
+        option.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+
+      if (state.dialogOpen && dialogName.textContent === "琦琦") setPortrait("qiqi");
+
+      try {
+        localStorage.setItem("cream-room-qiqi-outfit", outfit);
+      } catch {
+        // 某些浏览器禁止本地文件访问存储，不影响游戏运行。
+      }
+
+      outfitBtn.title = `琦琦的衣柜：${outfitNames[outfit]}（C）`;
+      if (announce) {
+        spawnHearts(3);
+        showToast(`琦琦换好了：${outfitNames[outfit]}`, 1800);
+      }
+    }
+
+    function selectOutfit(outfit) {
+      if (outfit === state.qiqiOutfit) return;
+      applyOutfit(outfit);
+      playTone(outfit === "white" ? 784 : outfit === "mint" ? 659 : 587, 0.12, 0.025);
+    }
+
+    function openWardrobe() {
+      if (state.dialogOpen || state.loading || state.helpOpen) return;
+      clearTimeout(state.autoTalkTimer);
+      state.wardrobeOpen = true;
+      stopMovementKeys();
+      wardrobeModal.classList.add("is-open");
+      const selected = document.querySelector(`.outfit-option[data-outfit="${state.qiqiOutfit}"]`);
+      selected?.focus();
+    }
+
+    function closeWardrobe() {
+      state.wardrobeOpen = false;
+      wardrobeModal.classList.remove("is-open");
+      outfitBtn.focus();
+    }
+
+    function openHelp() {
+      if (state.wardrobeOpen) closeWardrobe();
+      state.helpOpen = true;
+      stopMovementKeys();
+      helpModal.classList.add("is-open");
+      $("#helpClose").focus();
+    }
+
+    function closeHelp() {
+      state.helpOpen = false;
+      helpModal.classList.remove("is-open");
+      $("#helpBtn").focus();
+    }
+
+    $("#helpBtn").addEventListener("click", openHelp);
+    $("#helpClose").addEventListener("click", closeHelp);
+    helpModal.addEventListener("click", (event) => {
+      if (event.target === helpModal) closeHelp();
+    });
+
+    outfitBtn.addEventListener("click", openWardrobe);
+    $("#wardrobeClose").addEventListener("click", closeWardrobe);
+    wardrobeModal.addEventListener("click", (event) => {
+      if (event.target === wardrobeModal) closeWardrobe();
+    });
+    document.querySelectorAll(".outfit-option").forEach((option) => {
+      option.addEventListener("click", () => selectOutfit(option.dataset.outfit));
+    });
+
+    // 首次进入时给出轻量提示；之后完全离线运行。
+    let savedOutfit = "white";
+    try {
+      savedOutfit = localStorage.getItem("cream-room-qiqi-outfit") || "white";
+    } catch {
+      // 存储不可用时使用默认的小白裙。
+    }
+    applyOutfit(savedOutfit, false);
+    setPlayerPosition();
+    updateHearts();
+    updateClock();
+    setInterval(updateClock, 1000);
+    runLoadingAnimation();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
